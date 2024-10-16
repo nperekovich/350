@@ -56,6 +56,15 @@ def animate_drop(screen, board, col, color, start_y):
     # Draw the final position of the piece
     pygame.draw.circle(screen, color, (int(col*SQUARESIZE+SQUARESIZE/2), target_y), RADIUS)
     pygame.display.update()
+        # Draw the falling piece
+    pygame.draw.circle(screen, color, (int(col*SQUARESIZE+SQUARESIZE/2), current_y), RADIUS)
+    pygame.display.update()
+    pygame.time.wait(1000 // DROP_SPEED) # Adjust the wait time for smoother animation
+    current_y += 5 # Adjust this value to change the dropping speed
+
+    # Draw the final position of the piece
+    pygame.draw.circle(screen, color, (int(col*SQUARESIZE+SQUARESIZE/2), target_y), RADIUS)
+    pygame.display.update()
 
 #check if move is valid placement
 def is_valid_location(board, col):
@@ -172,7 +181,7 @@ while not game_over:
                     start_y = drop_piece(board, row, col, player)
 
                     color = RED if turn == 0 else YELLOW
-                    animate_drop(screen, col, board, color, start_y)
+                    animate_drop(screen, board, col, color, start_y)
 
                     if winning_move(board, player):
                         label = myfont.render(f"Player {player} wins!!", 1, color)
