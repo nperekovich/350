@@ -15,7 +15,7 @@ ROW_COUNT = 6
 COLUMN_COUNT = 7
 
 #change the dropping speed (lower = slower)
-DROP_SPEED = 90
+DROP_SPEED = 120
 
 #create board using assigned row/column values
 def create_board():
@@ -196,4 +196,4 @@ while not game_over:
 
                 #waits 3 seconds until game ends to close window
                 if game_over:
-                    pygame.time.wait(3000)
+                    pygame.time.wait(5000)
