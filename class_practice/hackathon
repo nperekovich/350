@@ -1,22 +1,28 @@
+#source code from https://github.com/KeithGalli/Connect4-Python
 import numpy as np
 import pygame
 import sys
 import math
 
+#piece/board colors
 BLUE = (0,0,255)
 BLACK = (0,0,0)
 RED = (255,0,0)
 YELLOW = (255,255,0)
 
+#board setup
 ROW_COUNT = 6
 COLUMN_COUNT = 7
 
-DROP_SPEED = 90  # Adjust this value to change the dropping speed (lower is slower)
+#change the dropping speed (lower = slower)
+DROP_SPEED = 90
 
+#create board using assigned row/column values
 def create_board():
     board = np.zeros((ROW_COUNT,COLUMN_COUNT))
     return board
 
+#drop piece in board
 def drop_piece(board, row, col, piece):
     board[row][col] = piece
     return row * SQUARESIZE + SQUARESIZE
@@ -32,6 +38,10 @@ def animate_drop(screen, col, color, start_y):
         pygame.display.update()
         pygame.time.wait(1000 // DROP_SPEED)  # Adjust the wait time for smoother animation
         current_y += 5  # Adjust this value to change the dropping speed
+
+            # Draw the final position of the piece
+        pygame.draw.circle(screen, color, (int(col*SQUARESIZE+SQUARESIZE/2), target_y), RADIUS)
+        pygame.display.update()
 
 def is_valid_location(board, col):
     return board[ROW_COUNT-1][col] == 0
@@ -107,64 +117,43 @@ pygame.display.update()
 myfont = pygame.font.SysFont("monospace", 75)
 
 while not game_over:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            sys.exit()
+            if event.type == pygame.MOUSEMOTION:
+                pygame.draw.rect(screen, BLACK, (0,0, width, SQUARESIZE))
+                posx = event.pos[0]
+                color = RED if turn == 0 else YELLOW
+                pygame.draw.circle(screen, color, (posx, int(SQUARESIZE/2)), RADIUS)
+            pygame.display.update()
 
-        if event.type == pygame.MOUSEMOTION:
-            pygame.draw.rect(screen, BLACK, (0,0, width, SQUARESIZE))
-            posx = event.pos[0]
-            if turn == 0:
-                pygame.draw.circle(screen, RED, (posx, int(SQUARESIZE/2)), RADIUS)
-            else: 
-                pygame.draw.circle(screen, YELLOW, (posx, int(SQUARESIZE/2)), RADIUS)
-        pygame.display.update()
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            pygame.draw.rect(screen, BLACK, (0,0, width, SQUARESIZE))
-            #print(event.pos)
-            # Ask for Player 1 Input
-            if turn == 0:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pygame.draw.rect(screen, BLACK, (0,0, width, SQUARESIZE))
                 posx = event.pos[0]
                 col = int(math.floor(posx/SQUARESIZE))
 
                 if is_valid_location(board, col):
                     row = get_next_open_row(board, col)
-                    start_y = drop_piece(board, row, col, turn + 1)
+                    player = turn + 1
+                    start_y = drop_piece(board, row, col, player)
 
                     color = RED if turn == 0 else YELLOW
                     animate_drop(screen, col, color, start_y)
 
-                    if winning_move(board, turn + 1):
-                            label = myfont.render(f"Player {turn + 1} wins!!", 1, color)
-                            screen.blit(label, (40, 10))
-                            game_over = True
-
-
-            # # Ask for Player 2 Input
-            else:				
-                posx = event.pos[0]
-                col = int(math.floor(posx/SQUARESIZE))
-
-                if is_valid_location(board, col):
-                    row = get_next_open_row(board, col)
-                    drop_piece(board, row, col, 2)
-
-                    if winning_move(board, 2):
-                        label = myfont.render("Player 2 wins!!", 1, YELLOW)
-                        screen.blit(label, (40,10))
+                    if winning_move(board, player):
+                        label = myfont.render(f"Player {player} wins!!", 1, color)
+                        screen.blit(label, (40, 10))
                         game_over = True
 
-            print_board(board)
-            draw_board(board)
+                    print_board(board)
+                    draw_board(board)
 
-            turn += 1
-            turn = turn % 2
+                    turn += 1
+                    turn = turn % 2
 
-            if game_over:
+                if game_over:
                     pygame.time.wait(3000)
                
             
-            # we left off right here 
-                
+            # we left off right here
