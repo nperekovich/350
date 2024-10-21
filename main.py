@@ -21,3 +21,7 @@ from class_practice import sept30
 print("\n")
 
 from class_practice import oct7
+
+print("\n")
+
+from class_practice import oct19
