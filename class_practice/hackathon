@@ -1,4 +1,5 @@
 #source code from https://github.com/KeithGalli/Connect4-Python
+#actual working code DO NOT EDIT ANYMORE LOL
 import numpy as np
 import pygame
 import sys
@@ -24,47 +25,52 @@ def create_board():
 
 #drop piece in board
 def drop_piece(board, row, col, piece):
-    board[row][col] = piece
-    return row * SQUARESIZE + SQUARESIZE
+        board[row][col] = piece
+        return (ROW_COUNT - 1 - row) * SQUARESIZE + SQUARESIZE
 
 #animate piece drop
-def animate_drop(screen, board, col, color, start_y):
-    current_y = start_y
-    target_y = int(height - SQUARESIZE/2)
+#this part sucks, heinous crimes were committed
+#we edited this part of the code about 67 times
+#words cannot express how difficult this was
+#i asked perplexity to fix this for us so many times
+def animate_drop(screen, board, col, piece, color):
+        row = get_next_open_row(board, col)
+        start_y = SQUARESIZE
+        target_y = (ROW_COUNT - row) * SQUARESIZE + SQUARESIZE // 2
+        current_y = start_y
 
-    while current_y < target_y:
-        # Clear only the part above the board
-        pygame.draw.rect(screen, BLACK, (col*SQUARESIZE, 0, SQUARESIZE, height - SQUARESIZE))
+        while current_y < target_y:
+            # Clear the screen
+            screen.fill(BLACK)
 
-        # Redraw existing pieces in the column
-        for r in range(ROW_COUNT):
-            if board[r][col] != 0:
-                piece_color = RED if board[r][col] == 1 else YELLOW
-                pygame.draw.circle(screen, piece_color, (int(col*SQUARESIZE+SQUARESIZE/2), height-int(r*SQUARESIZE+SQUARESIZE/2)), RADIUS)
+            # Redraw the board grid
+            for c in range(COLUMN_COUNT):
+                for r in range(ROW_COUNT):
+                    pygame.draw.rect(screen, BLUE, (c*SQUARESIZE, (r+1)*SQUARESIZE, SQUARESIZE, SQUARESIZE))
+                    pygame.draw.circle(screen, BLACK, (c*SQUARESIZE+SQUARESIZE//2, (r+1)*SQUARESIZE+SQUARESIZE//2), RADIUS)
 
-        # Redraw the board grid for this column
-        for r in range(ROW_COUNT):
-            pygame.draw.rect(screen, BLUE, (col*SQUARESIZE, r*SQUARESIZE+SQUARESIZE, SQUARESIZE, SQUARESIZE), 0)
-            pygame.draw.circle(screen, BLACK, (int(col*SQUARESIZE+SQUARESIZE/2), int(r*SQUARESIZE+SQUARESIZE+SQUARESIZE/2)), RADIUS)
+            # Draw existing pieces
+            for c in range(COLUMN_COUNT):
+                for r in range(ROW_COUNT):
+                    if board[r][c] != 0:
+                        piece_color = RED if board[r][c] == 1 else YELLOW
+                        piece_y = height - (r * SQUARESIZE + SQUARESIZE // 2)
+                        pygame.draw.circle(screen, piece_color, (c*SQUARESIZE+SQUARESIZE//2, piece_y), RADIUS)
 
-        # Draw the falling piece
-        pygame.draw.circle(screen, color, (int(col*SQUARESIZE+SQUARESIZE/2), current_y), RADIUS)
+            # Draw the falling piece
+            pygame.draw.circle(screen, color, (col*SQUARESIZE+SQUARESIZE//2, current_y), RADIUS)
+
+            pygame.display.update()
+            pygame.time.wait(1000 // DROP_SPEED)
+            current_y += 5
+
+        # Update the board with the new piece
+        board[row][col] = piece
+
+        # Draw the final board state
+        screen.fill(BLACK)
+        draw_board(board)
         pygame.display.update()
-        pygame.time.wait(1000 // DROP_SPEED)
-        current_y += 5
-
-    # Draw the final position of the piece
-    pygame.draw.circle(screen, color, (int(col*SQUARESIZE+SQUARESIZE/2), target_y), RADIUS)
-    pygame.display.update()
-        # Draw the falling piece
-    pygame.draw.circle(screen, color, (int(col*SQUARESIZE+SQUARESIZE/2), current_y), RADIUS)
-    pygame.display.update()
-    pygame.time.wait(1000 // DROP_SPEED) # Adjust the wait time for smoother animation
-    current_y += 5 # Adjust this value to change the dropping speed
-
-    # Draw the final position of the piece
-    pygame.draw.circle(screen, color, (int(col*SQUARESIZE+SQUARESIZE/2), target_y), RADIUS)
-    pygame.display.update()
 
 #check if move is valid placement
 def is_valid_location(board, col):
@@ -178,10 +184,8 @@ while not game_over:
                 if is_valid_location(board, col):
                     row = get_next_open_row(board, col)
                     player = turn + 1
-                    start_y = drop_piece(board, row, col, player)
-
                     color = RED if turn == 0 else YELLOW
-                    animate_drop(screen, board, col, color, start_y)
+                    animate_drop(screen, board, col, player, color)
 
                     if winning_move(board, player):
                         label = myfont.render(f"Player {player} wins!!", 1, color)
@@ -189,7 +193,6 @@ while not game_over:
                         game_over = True
 
                     print_board(board)
-                    draw_board(board)
 
                     turn += 1
                     turn = turn % 2
@@ -197,62 +200,3 @@ while not game_over:
                 #waits 3 seconds until game ends to close window
                 if game_over:
                     pygame.time.wait(5000)
-
-#update:
-'''
-#pt1
-def animate_drop(screen, board, col, color, start_y):
-    current_y = start_y
-    target_y = int(height - SQUARESIZE/2)
-
-    while current_y < target_y:
-        # Clear only the column where the piece is dropping
-        pygame.draw.rect(screen, BLACK, (col*SQUARESIZE, 0, SQUARESIZE, height))
-        
-        # Redraw the board grid for this column
-        for r in range(ROW_COUNT + 1):
-            pygame.draw.rect(screen, BLUE, (col*SQUARESIZE, r*SQUARESIZE, SQUARESIZE, SQUARESIZE), 0)
-            pygame.draw.circle(screen, BLACK, (int(col*SQUARESIZE+SQUARESIZE/2), int(r*SQUARESIZE+SQUARESIZE/2)), RADIUS)
-        
-        # Redraw existing pieces in this column
-        for r in range(ROW_COUNT):
-            if board[r][col] != 0:
-                piece_color = RED if board[r][col] == 1 else YELLOW
-                pygame.draw.circle(screen, piece_color, (int(col*SQUARESIZE+SQUARESIZE/2), height-int(r*SQUARESIZE+SQUARESIZE/2)), RADIUS)
-        
-        # Draw the falling piece
-        pygame.draw.circle(screen, color, (int(col*SQUARESIZE+SQUARESIZE/2), current_y), RADIUS)
-        pygame.display.update()
-        pygame.time.wait(1000 // DROP_SPEED)
-        current_y += 5
-
-    # Draw the final position of the piece
-    pygame.draw.circle(screen, color, (int(col*SQUARESIZE+SQUARESIZE/2), target_y), RADIUS)
-    pygame.display.update()
-#pt2
-def drop_piece(board, row, col, piece):
-    board[row][col] = piece
-    return (ROW_COUNT - 1 - row) * SQUARESIZE + SQUARESIZE
-#pt3
-if is_valid_location(board, col):
-    row = get_next_open_row(board, col)
-    player = turn + 1
-    start_y = drop_piece(board, row, col, player)
-
-    color = RED if turn == 0 else YELLOW
-    animate_drop(screen, board, col, color, start_y)
-
-    # Redraw the entire board after the animation
-    draw_board(board)
-
-    if winning_move(board, player):
-        label = myfont.render(f"Player {player} wins!!", 1, color)
-        screen.blit(label, (40, 10))
-        game_over = True
-
-    print_board(board)
-
-    turn += 1
-    turn = turn % 2
-'''
-
