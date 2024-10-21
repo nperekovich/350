@@ -1,15 +1,16 @@
 #source code from https://github.com/KeithGalli/Connect4-Python
-#actual working code DO NOT EDIT ANYMORE LOL
+#WORKS AND IS SPOOKY COLORS!!!!!!!!!!
 import numpy as np
 import pygame
 import sys
 import math
 
 #piece/board colors
-BLUE = (0,0,255)
+ORANGE = (221,114,48)
 BLACK = (0,0,0)
-RED = (255,0,0)
-YELLOW = (255,255,0)
+RED = (142,30,30)
+PURPLE = (135,63,117)
+WHITE = (255,255,255)
 
 #board setup
 ROW_COUNT = 6
@@ -46,14 +47,14 @@ def animate_drop(screen, board, col, piece, color):
             # Redraw the board grid
             for c in range(COLUMN_COUNT):
                 for r in range(ROW_COUNT):
-                    pygame.draw.rect(screen, BLUE, (c*SQUARESIZE, (r+1)*SQUARESIZE, SQUARESIZE, SQUARESIZE))
+                    pygame.draw.rect(screen, ORANGE, (c*SQUARESIZE, (r+1)*SQUARESIZE, SQUARESIZE, SQUARESIZE))
                     pygame.draw.circle(screen, BLACK, (c*SQUARESIZE+SQUARESIZE//2, (r+1)*SQUARESIZE+SQUARESIZE//2), RADIUS)
 
             # Draw existing pieces
             for c in range(COLUMN_COUNT):
                 for r in range(ROW_COUNT):
                     if board[r][c] != 0:
-                        piece_color = RED if board[r][c] == 1 else YELLOW
+                        piece_color = RED if board[r][c] == 1 else PURPLE
                         piece_y = height - (r * SQUARESIZE + SQUARESIZE // 2)
                         pygame.draw.circle(screen, piece_color, (c*SQUARESIZE+SQUARESIZE//2, piece_y), RADIUS)
 
@@ -116,7 +117,7 @@ def winning_move(board, piece):
 def draw_board(board):
     for c in range(COLUMN_COUNT):
         for r in range(ROW_COUNT):
-            pygame.draw.rect(screen, BLUE, (c*SQUARESIZE, r*SQUARESIZE+SQUARESIZE, SQUARESIZE, SQUARESIZE))
+            pygame.draw.rect(screen, ORANGE, (c*SQUARESIZE, r*SQUARESIZE+SQUARESIZE, SQUARESIZE, SQUARESIZE))
             pygame.draw.circle(screen, BLACK, (int(c*SQUARESIZE+SQUARESIZE/2), int(r*SQUARESIZE+SQUARESIZE+SQUARESIZE/2)), RADIUS)
 
     for c in range(COLUMN_COUNT):
@@ -124,7 +125,19 @@ def draw_board(board):
             if board[r][c] == 1:
                 pygame.draw.circle(screen, RED, (int(c*SQUARESIZE+SQUARESIZE/2), height-int(r*SQUARESIZE+SQUARESIZE/2)), RADIUS)
             elif board[r][c] == 2: 
-                pygame.draw.circle(screen, YELLOW, (int(c*SQUARESIZE+SQUARESIZE/2), height-int(r*SQUARESIZE+SQUARESIZE/2)), RADIUS)
+                pygame.draw.circle(screen, PURPLE, (int(c*SQUARESIZE+SQUARESIZE/2), height-int(r*SQUARESIZE+SQUARESIZE/2)), RADIUS)
+    pygame.display.update()
+
+#game over display
+def display_game_over(screen, winner):
+    game_over_font = pygame.font.SysFont("monospace", 60)
+    winner_font = pygame.font.SysFont("monospace", 50)
+
+    game_over_text = game_over_font.render("GAME OVER", 1, WHITE)
+    winner_text = winner_font.render(f"Player {winner} Wins!", 1, RED if winner == 1 else PURPLE)
+
+    screen.blit(game_over_text, (width // 2 - game_over_text.get_width() // 2, 10))
+    screen.blit(winner_text, (width // 2 - winner_text.get_width() // 2, 70))
     pygame.display.update()
 
 #initializes game start
@@ -170,7 +183,7 @@ while not game_over:
             if event.type == pygame.MOUSEMOTION:
                 pygame.draw.rect(screen, BLACK, (0,0, width, SQUARESIZE))
                 posx = event.pos[0]
-                color = RED if turn == 0 else YELLOW
+                color = RED if turn == 0 else PURPLE
                 pygame.draw.circle(screen, color, (posx, int(SQUARESIZE/2)), RADIUS)
             pygame.display.update()
 
@@ -184,12 +197,12 @@ while not game_over:
                 if is_valid_location(board, col):
                     row = get_next_open_row(board, col)
                     player = turn + 1
-                    color = RED if turn == 0 else YELLOW
+                    color = RED if turn == 0 else PURPLE
                     animate_drop(screen, board, col, player, color)
 
                     if winning_move(board, player):
-                        label = myfont.render(f"Player {player} wins!!", 1, color)
-                        screen.blit(label, (40, 10))
+                        draw_board(board)
+                        display_game_over(screen, player)
                         game_over = True
 
                     print_board(board)
