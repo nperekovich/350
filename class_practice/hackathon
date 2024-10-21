@@ -1,3 +1,4 @@
+#we do CONNECT 4 for FUN TIMES WITH CLASSMATES (: with PYGAME ON REPLIT 
 #source code from https://github.com/KeithGalli/Connect4-Python
 import numpy as np
 import pygame
