@@ -1,6 +1,3 @@
-import pygame, sys
-from pygame.locals import QUIT
-
 import pygame
 import random
 
@@ -13,14 +10,37 @@ HEIGHT = 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Reindeer Platform Jumper")
 
+# Load and scale the background image
+try:
+    background = pygame.image.load('Christmas_Hackathon.png').convert()
+    background = pygame.transform.scale(background, (WIDTH, HEIGHT))
+except pygame.error as e:
+    print(f"Couldn't load background image: {e}")
+    background = None
+
+# Load the reindeer icon image
+try:
+    icon = pygame.image.load('reindeer_icon.png')
+    pygame.display.set_icon(icon)
+except pygame.error as e:
+    print(f"Couldn't load icon image: {e}")
+
 # Colors
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
-RED = (255, 0, 0)
+
+# Load reindeer image
+try:
+    reindeer_img = pygame.image.load('reindeer_icon.png')
+    reindeer_img = pygame.transform.scale(reindeer_img, (60, 40))  # Adjust size as needed
+except pygame.error as e:
+    print(f"Couldn't load reindeer image: {e}")
+    reindeer_img = pygame.Surface((60, 40))
+    reindeer_img.fill((255, 0, 0))  # Red rectangle as fallback
 
 # Reindeer properties
-reindeer_width = 50
-reindeer_height = 50
+reindeer_width = 60
+reindeer_height = 40
 reindeer_x = WIDTH // 2 - reindeer_width // 2
 reindeer_y = HEIGHT - reindeer_height - 10
 reindeer_speed = 5
@@ -36,6 +56,19 @@ platforms = [[WIDTH // 2 - platform_width // 2, HEIGHT - 100]]
 score = 0
 jump = False
 y_velocity = 0
+
+def create_platform(last_platform):
+    max_jump_height = (jump_speed ** 2) / (2 * gravity)  # Maximum jump height
+    min_y_distance = 50  # Minimum vertical distance between platforms
+    max_y_distance = int(max_jump_height * 0.8)  # Maximum vertical distance (80% of max jump height)
+
+    x = random.randint(0, WIDTH - platform_width)
+    y = last_platform[1] - random.randint(min_y_distance, max_y_distance)
+    return [x, y]
+
+# Create initial platforms
+for _ in range(5):
+    platforms.append(create_platform(platforms[-1]))
 
 # Game loop
 running = True
@@ -75,13 +108,14 @@ while running:
 
     # Move platforms down and create new ones
     if reindeer_y < HEIGHT // 2:
-        reindeer_y += 5
+        scroll_speed = 5
+        reindeer_y += scroll_speed
         for platform in platforms:
-            platform[1] += 5
-        if platforms[-1][1] > 100:
-            x = random.randint(0, WIDTH - platform_width)
-            y = platforms[-1][1] - 200
-            platforms.append([x, y])
+            platform[1] += scroll_speed
+        
+        # Create new platforms more frequently
+        while platforms[-1][1] > 0:
+            platforms.append(create_platform(platforms[-1]))
             score += 1
 
     # Remove off-screen platforms
@@ -89,8 +123,12 @@ while running:
         platforms.pop(0)
 
     # Draw everything
-    screen.fill(WHITE)
-    pygame.draw.rect(screen, RED, (reindeer_x, reindeer_y, reindeer_width, reindeer_height))
+    if background:
+        screen.blit(background, (0, 0))
+    else:
+        screen.fill(WHITE)
+    
+    screen.blit(reindeer_img, (reindeer_x, reindeer_y))
     for platform in platforms:
         pygame.draw.rect(screen, BLUE, (platform[0], platform[1], platform_width, platform_height))
 
