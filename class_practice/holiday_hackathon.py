@@ -62,7 +62,12 @@ def create_platform(last_platform):
     min_y_distance = 50  # Minimum vertical distance between platforms
     max_y_distance = int(max_jump_height * 0.8)  # Maximum vertical distance (80% of max jump height)
 
-    x = random.randint(0, WIDTH - platform_width)
+    # Limit horizontal distance
+    max_x_distance = 200  # Maximum horizontal distance
+    min_x = max(0, last_platform[0] - max_x_distance)
+    max_x = min(WIDTH - platform_width, last_platform[0] + max_x_distance)
+
+    x = random.randint(min_x, max_x)
     y = last_platform[1] - random.randint(min_y_distance, max_y_distance)
     return [x, y]
 
@@ -112,7 +117,7 @@ while running:
         reindeer_y += scroll_speed
         for platform in platforms:
             platform[1] += scroll_speed
-        
+
         # Create new platforms more frequently
         while platforms[-1][1] > 0:
             platforms.append(create_platform(platforms[-1]))
@@ -127,7 +132,7 @@ while running:
         screen.blit(background, (0, 0))
     else:
         screen.fill(WHITE)
-    
+
     screen.blit(reindeer_img, (reindeer_x, reindeer_y))
     for platform in platforms:
         pygame.draw.rect(screen, BLUE, (platform[0], platform[1], platform_width, platform_height))
