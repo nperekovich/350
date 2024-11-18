@@ -30,6 +30,7 @@ except pygame.error as e:
 WHITE = (255, 255, 255)
 BRICK_COLOR = (178, 34, 34)  # Firebrick color for bricks
 MORTAR_COLOR = (192, 192, 192)  # Light Gray for mortar
+YELLOW = (255, 255, 0)  # Yellow color for score text
 
 # Load reindeer images
 try:
@@ -232,11 +233,11 @@ while running:
 
     # Display score on the screen.
     font = pygame.font.Font(None, 36)
-    score_text = font.render(f"Score: {score}", True, (0, 0, 0))
+    score_text = font.render(f"Score: {score}", True, (YELLOW))
     screen.blit(score_text, (10, 10))
 
     # Display high score on the screen
-    high_score_text = font.render(f"High Score: {high_score}", True, (0, 0, 0))
+    high_score_text = font.render(f"High Score: {high_score}", True, (YELLOW))
     screen.blit(high_score_text, (WIDTH - high_score_text.get_width() - 10, 10))
 
     pygame.display.flip()
