@@ -59,6 +59,20 @@ facing_right = True
 score = 0
 platforms_moving = False  # Flag to check if platforms should be moving
 
+# High score handling
+def load_high_score():
+    try:
+        with open("high_score.txt", "r") as file:
+            return int(file.read())
+    except FileNotFoundError:
+        return 0
+
+def save_high_score(high_score):
+    with open("high_score.txt", "w") as file:
+        file.write(str(high_score))
+
+high_score = load_high_score()
+
 def create_platform(last_platform):
     max_jump_height = (jump_speed ** 2) / (2 * gravity)  # Maximum jump height
     min_y_distance = 50  # Minimum vertical distance between platforms
@@ -191,6 +205,9 @@ while running:
 
     # Check if reindeer has fallen off the screen
     if reindeer_y > HEIGHT:
+        if score > high_score:
+            high_score = score
+            save_high_score(high_score)
         font = pygame.font.Font(None, 74)
         text = font.render("Game Over", True, (255, 0, 0))
         screen.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
@@ -215,8 +232,12 @@ while running:
 
     # Display score on the screen.
     font = pygame.font.Font(None, 36)
-    text = font.render(f"Score: {score}", True, (0, 0, 0))
-    screen.blit(text, (10, 10))
+    score_text = font.render(f"Score: {score}", True, (0, 0, 0))
+    screen.blit(score_text, (10, 10))
+
+    # Display high score on the screen
+    high_score_text = font.render(f"High Score: {high_score}", True, (0, 0, 0))
+    screen.blit(high_score_text, (WIDTH - high_score_text.get_width() - 10, 10))
 
     pygame.display.flip()
     clock.tick(60)
