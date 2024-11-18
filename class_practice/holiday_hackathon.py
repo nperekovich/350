@@ -49,12 +49,15 @@ reindeer_height = 40
 # Platform properties
 platform_width = 100
 platform_height = 20
+platform_speed = 2  # Speed at which platforms will move
 
 # Game variables
 reindeer_speed = 5
 jump_speed = -15
 gravity = 0.8
-facing_right = True  # New variable to track reindeer direction
+facing_right = True
+score = 0
+platforms_moving = False  # Flag to check if platforms should be moving
 
 def create_platform(last_platform):
     max_jump_height = (jump_speed ** 2) / (2 * gravity)  # Maximum jump height
@@ -68,7 +71,8 @@ def create_platform(last_platform):
 
     x = random.randint(min_x, max_x)
     y = last_platform[1] - random.randint(min_y_distance, max_y_distance)
-    return [x, y]
+    direction = random.choice([-1, 1])  # Random direction for platform movement
+    return [x, y, direction]
 
 def draw_brick_platform(surface, x, y, width, height):
     brick_height = height // 2
@@ -102,8 +106,8 @@ def draw_brick_platform(surface, x, y, width, height):
                          2)
 
 def reset_game():
-    global reindeer_x, reindeer_y, platforms, score, jump, y_velocity, facing_right
-    platforms = [[WIDTH // 2 - platform_width // 2, HEIGHT - 100]]
+    global reindeer_x, reindeer_y, platforms, score, jump, y_velocity, facing_right, platforms_moving
+    platforms = [[WIDTH // 2 - platform_width // 2, HEIGHT - 100, 1]]  # Added direction
     for _ in range(5):
         platforms.append(create_platform(platforms[-1]))
     reindeer_x = platforms[0][0] + platform_width // 2 - reindeer_width // 2
@@ -112,6 +116,7 @@ def reset_game():
     jump = False
     y_velocity = 0
     facing_right = True
+    platforms_moving = False
 
 # Game loop
 running = True
@@ -142,9 +147,18 @@ while running:
     reindeer_y += y_velocity
     y_velocity += gravity
 
-    # Check collisions with platforms.
+    # Check if score has reached 100 and activate platform movement
+    if score >= 50 and not platforms_moving:
+        platforms_moving = True
+
+    # Check collisions with platforms and move platforms if necessary.
     on_platform = False
     for platform in platforms:
+        if platforms_moving:
+            platform[0] += platform_speed * platform[2]  # Move platform
+            if platform[0] <= 0 or platform[0] + platform_width >= WIDTH:
+                platform[2] *= -1  # Reverse direction if hitting screen edge
+
         if (reindeer_y + reindeer_height >= platform[1] and 
             reindeer_y + reindeer_height <= platform[1] + platform_height and 
             reindeer_x < platform[0] + platform_width and 
@@ -186,7 +200,7 @@ while running:
 
     # Draw everything on the screen.
     if background:
-        screen.blit(background,(0 ,0))
+        screen.blit(background, (0, 0))
     else:
         screen.fill(WHITE)
 
@@ -197,12 +211,12 @@ while running:
         screen.blit(reindeer_left, (reindeer_x, reindeer_y))
 
     for platform in platforms:
-        draw_brick_platform(screen ,platform[0],platform[1],platform_width ,platform_height)
+        draw_brick_platform(screen, platform[0], platform[1], platform_width, platform_height)
 
     # Display score on the screen.
-    font = pygame.font.Font(None ,36)
-    text = font.render(f"Score: {score}",True ,(0 ,0 ,0))
-    screen.blit(text,(10 ,10))
+    font = pygame.font.Font(None, 36)
+    text = font.render(f"Score: {score}", True, (0, 0, 0))
+    screen.blit(text, (10, 10))
 
     pygame.display.flip()
     clock.tick(60)
