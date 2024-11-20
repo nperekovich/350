@@ -75,15 +75,12 @@ def save_high_score(high_score):
 high_score = load_high_score()
 
 def create_platform(last_platform):
-    max_jump_height = (jump_speed ** 2) / (2 * gravity)  # Maximum jump height
+    max_jump_height = (jump_speed**2) / (2 * gravity)  # Maximum jump height
     min_y_distance = 50  # Minimum vertical distance between platforms
     max_y_distance = int(max_jump_height * 0.8)  # Maximum vertical distance (80% of max jump height)
-
-    # Limit horizontal distance
     max_x_distance = 200  # Maximum horizontal distance
     min_x = max(0, last_platform[0] - max_x_distance)
     max_x = min(WIDTH - platform_width, last_platform[0] + max_x_distance)
-
     x = random.randint(min_x, max_x)
     y = last_platform[1] - random.randint(min_y_distance, max_y_distance)
     direction = random.choice([-1, 1])  # Random direction for platform movement
@@ -92,36 +89,32 @@ def create_platform(last_platform):
 def draw_brick_platform(surface, x, y, width, height):
     brick_height = height // 2
     brick_width = width // 4
-
     for row in range(2):
         for col in range(4):
             brick_x = x + col * brick_width
             brick_y = y + row * brick_height
-
             # Draw mortar
             pygame.draw.rect(surface, MORTAR_COLOR, (brick_x, brick_y, brick_width, brick_height))
-
             # Draw brick with the new brick color
             inner_margin = 2
-            pygame.draw.rect(surface, BRICK_COLOR, (brick_x + inner_margin, brick_y + inner_margin,
-                                                    brick_width - 2 * inner_margin,
-                                                    brick_height - inner_margin * 2))
-
+            pygame.draw.rect(
+                surface, BRICK_COLOR,
+                (brick_x + inner_margin, brick_y + inner_margin,
+                 brick_width - 2 * inner_margin, brick_height - inner_margin * 2))
             # Add some shading to bricks for depth effect (optional)
-            pygame.draw.line(surface, (139,69,19), (brick_x + inner_margin, brick_y + inner_margin), 
-                             (brick_x + brick_width - inner_margin, brick_y + inner_margin), 1)
-            pygame.draw.line(surface, (139,69,19), (brick_x + inner_margin, brick_y + brick_height - inner_margin), 
+            pygame.draw.line(
+                surface, (139, 69, 19),
+                (brick_x + inner_margin, brick_y + inner_margin),
+                (brick_x + brick_width - inner_margin, brick_y + inner_margin), 1)
+            pygame.draw.line(surface, (139, 69, 19),
+                             (brick_x + inner_margin, brick_y + brick_height - inner_margin),
                              (brick_x + brick_width - inner_margin, brick_y + brick_height - inner_margin), 1)
-
     # Add vertical mortar lines for a staggered effect in the second row if necessary.
     if width % brick_width != 0:
-        pygame.draw.line(surface, MORTAR_COLOR,
-                         (x + width - 1, y + brick_height),
-                         (x + width - 1, y + height), 
-                         2)
+        pygame.draw.line(surface, MORTAR_COLOR, (x + width - 1, y + brick_height), (x + width - 1, y + height), 2)
 
 def reset_game():
-    global reindeer_x, reindeer_y, platforms, score, jump, y_velocity, facing_right, platforms_moving
+    global reindeer_x, reindeer_y, platforms, score, jump, y_velocity, facing_right, platforms_moving, frozen_platform
     platforms = [[WIDTH // 2 - platform_width // 2, HEIGHT - 100, 1]]  # Added direction
     for _ in range(5):
         platforms.append(create_platform(platforms[-1]))
@@ -132,18 +125,18 @@ def reset_game():
     y_velocity = 0
     facing_right = True
     platforms_moving = False
+    frozen_platform = None
 
 # Game loop
 running = True
 clock = pygame.time.Clock()
-
+frozen_platform = None
 reset_game()
 
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and not jump:
                 jump = True
@@ -162,36 +155,40 @@ while running:
     reindeer_y += y_velocity
     y_velocity += gravity
 
-    # Check if score has reached 100 and activate platform movement
+    # Check if score has reached 50 and activate platform movement
     if score >= 50 and not platforms_moving:
         platforms_moving = True
 
     # Check collisions with platforms and move platforms if necessary.
     on_platform = False
     for platform in platforms:
-        if platforms_moving:
+        if platforms_moving and platform != frozen_platform:
             platform[0] += platform_speed * platform[2]  # Move platform
             if platform[0] <= 0 or platform[0] + platform_width >= WIDTH:
                 platform[2] *= -1  # Reverse direction if hitting screen edge
 
-        if (reindeer_y + reindeer_height >= platform[1] and 
-            reindeer_y + reindeer_height <= platform[1] + platform_height and 
-            reindeer_x < platform[0] + platform_width and 
+        if (reindeer_y + reindeer_height >= platform[1] and
+            reindeer_y + reindeer_height <= platform[1] + platform_height and
+            reindeer_x < platform[0] + platform_width and
             reindeer_x + reindeer_width > platform[0] and
-            y_velocity > 0):  # Only collide when moving downwards
+            y_velocity > 0):
+            # Collision detected
             jump = False
-            y_velocity = 0 
+            y_velocity = 0
             reindeer_y = platform[1] - reindeer_height
             on_platform = True
+            if score >= 50:
+                frozen_platform = platform
             break
 
     if not on_platform:
         jump = True
+        frozen_platform = None
 
     # Move platforms down and create new ones.
     if reindeer_y < HEIGHT // 2:
-        scroll_speed = 5 
-        reindeer_y += scroll_speed 
+        scroll_speed = 5
+        reindeer_y += scroll_speed
         for platform in platforms:
             platform[1] += scroll_speed
 
@@ -211,7 +208,7 @@ while running:
             save_high_score(high_score)
         font = pygame.font.Font(None, 74)
         text = font.render("Game Over", True, (255, 0, 0))
-        screen.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
+        screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
         pygame.display.flip()
         time.sleep(2)  # Display "Game Over" for 2 seconds
         reset_game()
